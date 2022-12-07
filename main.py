@@ -2,6 +2,7 @@
 
 
 import tensorflow, pandas, numpy
+from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
 
@@ -43,6 +44,8 @@ def create_model():
     data_set = data_frame.values
     X = data_set[:, 0:11].astype(float)
     Y = data_set[:, 11].astype(float)
+    encoder = LabelEncoder()
+    Y = tensorflow.keras.utils.to_categorical(encoder.fit_transform(Y))
 
     # Creating the NN-model
     nn_model = tensorflow.keras.models.Sequential()
@@ -53,8 +56,8 @@ def create_model():
     nn_model.add(tensorflow.keras.layers.Dense(2, activation='softmax'))
 
     # Compiling and training the model
-    nn_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    training_hist = nn_model.fit(X, Y, epochs=40, batch_size=5, validation_split=0.1)
+    nn_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    training_hist = nn_model.fit(X, Y, epochs=30, batch_size=5, validation_split=0.1)
     nn_model.save('./model.nn')
 
     # Drawing graphics and printing training results
@@ -69,7 +72,8 @@ def test_model(input_x):
     except BaseException:
         print('ERROR: Saved NN-model file was deleted, damaged or renamed!')
         return
-    print('Predicted overtime chance: ', nn_model.predict(input_x))
+    overtime_chance = nn_model.predict(input_x)[0][1]
+    print('Predicted overtime chance: ', round(overtime_chance * 100, 2), '%')
 
 
 # Program processing ...
